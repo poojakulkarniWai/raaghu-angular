@@ -17,18 +17,10 @@ export class LanguageTextEffects {
   getLanguageTexts$ = createEffect(() =>
       this.actions$.pipe(
           ofType(getLanguageTexts),
-          switchMap((data) => 
+          switchMap(() => 
+
               // Call the getTodos method, convert it to an observable
-              from (this.languageService.languageTextsGET(
-                data.filter,
-                data.resourceName,
-                data.baseLanguageName.toString(),
-                data.targetCultureName.toString(),
-                data.getOnlyEmptyValues,
-                data.sorting,
-                data.skipCount,
-                data.MaxResultCount
-              )).pipe(
+              from (this.languageService.languageTextsGET(undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined)).pipe(
                   // Take the returned value and return a new success action containing the todos
                   map((languageText) => {
                       return getLanguageTextSuccess({ languageText })
@@ -45,14 +37,9 @@ export class LanguageTextEffects {
     this.actions$.pipe(
       ofType(updateLanguageText),
       switchMap((data) =>
-       from( this.languageService.languageTextsPUT(
-        data.resourceName, 
-        data.cultureName, 
-        data.name, 
-        data.value,
-       ).pipe(
+       from( this.languageService.languageTextsPUT(undefined,undefined,undefined,undefined).pipe(
         map((res: any) => {
-         //this.store.dispatch(getLanguageTexts(languageText));
+          //this.store.dispatch(getLanguageTexts(languageText));
           this.alertService.showAlert('Success', 'Language text updated successfully','success' )
         }),
           catchError((error: any) => of(

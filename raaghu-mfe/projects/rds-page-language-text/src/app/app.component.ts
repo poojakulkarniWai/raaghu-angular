@@ -1,11 +1,11 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Component, OnChanges, OnInit, SimpleChanges } from '@angular/core';
-import { ComponentLoaderOptions, ServiceProxy, UserAuthService } from '@libs/shared';
+import { ComponentLoaderOptions, UserAuthService } from '@libs/shared';
+import { selectDefaultLanguage } from '@libs/state-management';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
-import { getLanguageTexts,updateLanguageText } from 'projects/libs/state-management/src/lib/state/language-text/language-text.actions';
+import { getLanguageTexts } from 'projects/libs/state-management/src/lib/state/language-text/language-text.actions';
 import { selectAllLanguageTexts } from 'projects/libs/state-management/src/lib/state/language-text/language-text.selector';
-import { selectAllLanguages } from 'projects/libs/state-management/src/lib/state/language/language.selector';
 import { TableHeader } from 'projects/rds-components/src/models/table-header.model';
 import { LanguageText } from '../modal/language-text';
 declare let bootstrap: any;
@@ -18,15 +18,12 @@ declare let bootstrap: any;
 export class AppComponent implements OnInit, OnChanges {
   title = 'language-text';
   LanguageText: LanguageText = {
-    resourceName: '',
-    cultureName: '',
-    name: '',
-    value: '',
+    baseValue: '',
+    sourceName: '',
     baseLanguageName: '',
     languageName: '',
-    key: '',
-    baseValue:'', 
-    sourceName:''
+    value: '',
+    key: ''
   };
   rdsLanguagetextTableMfeConfig: ComponentLoaderOptions;
   baselanguage: string;
@@ -39,11 +36,10 @@ export class AppComponent implements OnInit, OnChanges {
     { displayName: 'Key', key: 'key', dataType: 'text', dataLength: 30, sortable: true, required: true },
     { displayName: 'Base Value', key: 'baseValue', dataType: 'text', dataLength: 30, required: true, sortable: true },
     { displayName: 'Target Value', key: 'value', dataType: 'text', dataLength: 30, required: true, sortable: true },
-    { displayName: 'Resource Name', key: 'resourceName', dataType: 'text', dataLength: 30, required: true, sortable: true }
+    //{ displayName: 'Resource Name', key: 'ResourceName', dataType: 'text', dataLength: 30, required: true, sortable: true }
   ]
   languagetextTableData: any = [] = []
   listbaseLanguage: any[] = [];
-
   listTargetCulturename: any[] = []
   listsource: any[] = []
   listTargetValue: any[] = [
@@ -53,15 +49,14 @@ export class AppComponent implements OnInit, OnChanges {
   constructor(private http: HttpClient,
     private store: Store,
     public translate: TranslateService,
-    private userAuthService: UserAuthService,
-    private languageService: ServiceProxy,
+    private userAuthService: UserAuthService
   ) { }
   ngOnInit(): void {
-    // this.store.select(selectDefaultLanguage).subscribe((res: any) => {
-    //   if (res) {
-    //     this.translate.use(res);
-    //   }
-    // })
+    this.store.select(selectDefaultLanguage).subscribe((res: any) => {
+      if (res) {
+        this.translate.use(res);
+      }
+    })
     this.getLanguageTextTable();
     this.getAllBaseLanguage();
     this.rdsLanguagetextTableMfeConfig = {
@@ -91,12 +86,12 @@ export class AppComponent implements OnInit, OnChanges {
           } else if (event.actionId === 'edit') {
             this.EditlanguageText(undefined);
             if (event.selectedData) {
-              this.LanguageText.name = event.selectedData.baseValue;
+              this.LanguageText.baseValue = event.selectedData.baseValue;
               this.LanguageText.value = event.selectedData.value;
               this.LanguageText.key = event.selectedData.key;
               this.LanguageText.baseLanguageName = this.baselanguage;
-              this.LanguageText.cultureName = 'fi';
-              this.LanguageText.resourceName = event.selectedData.resourceName;
+              this.LanguageText.languageName = this.TargetCulturename;
+              this.LanguageText.sourceName = this.source;
             }
           }
 
@@ -108,11 +103,10 @@ export class AppComponent implements OnInit, OnChanges {
       if (res && res.items && res.items.length > 0) {
         res.items.forEach((element: any) => {
           const item: any = {
-            key: element.name,
+            key: element.key,
             baseValue: element.baseValue,
-            value: element.value,
-            resourceName: element.resourceName
-          }       
+            value: element.targetValue,
+          }
           this.languagetextTableData.push(item);
         });
         const mfeConfig = this.rdsLanguagetextTableMfeConfig
@@ -121,7 +115,6 @@ export class AppComponent implements OnInit, OnChanges {
         this.rdsLanguagetextTableMfeConfig = mfeConfig;
       }
     })
-  
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -136,36 +129,33 @@ export class AppComponent implements OnInit, OnChanges {
     }, 100);
   }
 
-  getLanguageTextTable(isedited?) {
+  getLanguageTextTable() {
     this.languagetextTableData = [];
     const languageTextDataParams: any = {
-      getOnlyEmptyValues: false,
-      Sorting: '',
-      MaxResultCount: 10,
+      maxResultCount: 50,
       skipCount: 0,
-      baseLanguageName: this.baselanguage ? this.baselanguage: "ar",
-      targetCultureName: this.TargetCulturename? this.TargetCulturename: "fi",
+      sorting: '',
+      sourceName: this.source,
+      baseLanguageName: this.baselanguage,
+      targetLanguageName: this.TargetCulturename,
       targetValueFilter: this.targetFilter,
-      resource: this.source? this.source :''
+      filterText: this.filterText
     }
     this.store.dispatch(getLanguageTexts(languageTextDataParams));
-    if(isedited){
-      this.store.dispatch(updateLanguageText(this.LanguageText));
-      this.store.dispatch(getLanguageTexts(languageTextDataParams));
-    }
   }
+  
   getAllBaseLanguage() {
-    this.languageService.all().subscribe((response) => {
+    this.userAuthService.getLanguages().subscribe((response) => {
       var result = response;
-      result.items.forEach(element => {
+      result.forEach(element => {
         const item: any = {
-           displayText: element.displayName,
-           value: element.cultureName,
+          displayText: element.displayName,
+          value: element.name,
         }
         this.listbaseLanguage.push(item);
       });
     })
-    this.languageService.resources().subscribe((response) => {
+    this.userAuthService.getSources().subscribe((response) => {
       var result = response;
       result.forEach(element => {
         const item: any = {
@@ -179,18 +169,7 @@ export class AppComponent implements OnInit, OnChanges {
 
   searchLanguageText(event: any) {
     this.filterText = event;
-    console.log("filterText",this.filterText);
-    const languageTextDataParams: any = {
-      getOnlyEmptyValues: false,
-      Sorting: '',
-      MaxResultCount: 1000,
-      skipCount: 0,
-      baseLanguageName: "ar",
-      targetCultureName: "fi",
-      targetValueFilter: this.targetFilter,
-      filter:this.filterText
-    }
-    this.store.dispatch(getLanguageTexts(languageTextDataParams));
+    this.getLanguageTextTable();
   }
 
   changeTarget() {

@@ -5,8 +5,6 @@ import { LanguageText } from 'projects/rds-page-language-text/src/modal/language
 import { selectAllLanguageTexts } from 'projects/libs/state-management/src/lib/state/language-text/language-text.selector';
 import { TableHeader } from '../../models/table-header.model';
 declare let bootstrap: any;
-import { getLanguageTexts } from 'projects/libs/state-management/src/lib/state/language-text/language-text.actions';
-
 
 @Component({
   selector: 'app-rds-comp-language-text-list',
@@ -14,8 +12,9 @@ import { getLanguageTexts } from 'projects/libs/state-management/src/lib/state/l
   styleUrls: ['./rds-comp-language-text-list.component.scss']
 })
 export class RdsCompLanguageTextListComponent implements OnInit {
-  LanguageText: any
+  LanguageText: LanguageText
   RdsCompLanguageTextList: ComponentLoaderOptions;
+  rdsLanguagetextTableMfeConfig: ComponentLoaderOptions;
   baselanguage: string;
   TargetCulturename: string
   source: string
@@ -25,8 +24,7 @@ export class RdsCompLanguageTextListComponent implements OnInit {
     { displayName: 'Key', key: 'Key', dataType: 'text', dataLength: 30, sortable: true, required: true },
     { displayName: 'Base Value', key: 'BaseValue', dataType: 'text', dataLength: 30, required: true, sortable: true },
     { displayName: 'Value', key: 'Value', dataType: 'text', dataLength: 30, required: true, sortable: true },
-    { displayName: 'Resource', key: 'Resource', dataType: 'text', dataLength: 30, required: true, sortable: true },
-
+    //{ displayName: 'Resource Name', key: 'ResourceName', dataType: 'text', dataLength: 30, required: true, sortable: true }
   ]
   languagetextTableData: any = [] = [ { languagename: 'India', countryCode: 'IND', statusTemplate: 'true', creationTime: '12-10-1992' },
   { languagename: 'India', countryCode: 'IND', statusTemplate: 'true', creationTime: '12-10-1992' },
@@ -51,7 +49,7 @@ export class RdsCompLanguageTextListComponent implements OnInit {
       targetValueFilter:'ALL',
       filterText:''
     }
-    this.store.dispatch(getLanguageTexts(languageTextDataParams));
+    //this.store.dispatch(getLanguageTexts(languageTextDataParams));
 
     this.store.select(selectAllLanguageTexts).subscribe((res: any) => {
       this.languagetextTableData = [];
@@ -64,12 +62,12 @@ export class RdsCompLanguageTextListComponent implements OnInit {
           }
           this.languagetextTableData.push(item);
         });
-        const mfeConfig = this.RdsCompLanguageTextList
+        const mfeConfig = this.rdsLanguagetextTableMfeConfig
         mfeConfig.input.tableData = [... this.languagetextTableData];
-        this.RdsCompLanguageTextList = mfeConfig;
+        this.rdsLanguagetextTableMfeConfig = mfeConfig;
       }
     })
-    this.RdsCompLanguageTextList = {
+    this.rdsLanguagetextTableMfeConfig = {
       name: 'RdsDataTable',
       input: {
         tableHeaders: this.languagetextTableHeader,
@@ -91,7 +89,7 @@ export class RdsCompLanguageTextListComponent implements OnInit {
               this.languagetextTableData.splice(index, 1);
               const mfeConfig = this.languagetextTableData
               mfeConfig.input.tableData = [... this.languagetextTableData];
-              this.RdsCompLanguageTextList = mfeConfig;
+              this.rdsLanguagetextTableMfeConfig = mfeConfig;
             }
           } else if (event.actionId === 'edit') {
             this.EditlanguageText(undefined);

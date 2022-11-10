@@ -52,7 +52,6 @@
 </div>
 <rds-offcanvas [canvasTitle]="translate.instant('EDIT TEXT')" [offId]="'EditlanguageText'" [offcanvaswidth]="550" [placement]="'end'"
   >
-
-  <app-edit-language-text [Languagetext]="LanguageText" (onLanguageTextSave)="getLanguageTextTable(true)"></app-edit-language-text>
+  <app-edit-language-text [Languagetext]="LanguageText" (onLanguageTextSave)="getLanguageTextTable()"></app-edit-language-text>
 
 </rds-offcanvas>
